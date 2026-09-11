@@ -1,0 +1,23 @@
+name: Regra de negocio
+description: Regra de negocio (RN) prevista na Ficha de Caracterizacao
+title: "RNxx - "
+labels: ["regra-de-negocio"]
+body:
+  - type: textarea
+    id: regra
+    attributes:
+      label: Regra
+      description: Texto da regra conforme a Ficha, item 7.1
+    validations:
+      required: true
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Criterio de aceitacao
+    validations:
+      required: true
+  - type: input
+    id: teste
+    attributes:
+      label: Teste automatizado previsto
+      placeholder: EventoServiceTest#recusaEventoComDataDeInicioNoPassado

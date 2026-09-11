@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: qualaboa-db
+    environment:
+      POSTGRES_DB: qualaboa
+      POSTGRES_USER: qualaboa
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-qualaboa}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qualaboa"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  dbdata:
