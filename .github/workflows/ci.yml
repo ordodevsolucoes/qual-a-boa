@@ -12,6 +12,26 @@ jobs:
   backend:
     name: backend
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: qualaboa
+          POSTGRES_USER: qualaboa
+          POSTGRES_PASSWORD: qualaboa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qualaboa"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/qualaboa
+      DB_USER: qualaboa
+      DB_PASSWORD: qualaboa
+      JWT_SECRET: segredo-de-ci-descartavel
+      CORS_ORIGENS: http://localhost:5173
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

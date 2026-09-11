@@ -9,7 +9,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      # mount na raiz, nao em /data: layout exigido pela imagem a partir do Postgres 18
+      - dbdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U qualaboa"]
       interval: 10s
