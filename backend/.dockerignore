@@ -1,0 +1,14 @@
+target/
+.mvn/
+mvnw
+mvnw.cmd
+.git/
+.gitignore
+.gitattributes
+.dockerignore
+Dockerfile
+HELP.md
+.idea/
+.vscode/
+*.iml
+application-local.properties
