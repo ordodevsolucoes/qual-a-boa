@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import br.com.ordodev.qualaboa.excecao.AcessoNegadoException;
 import br.com.ordodev.qualaboa.excecao.RegraDeNegocioException;
 import br.com.ordodev.qualaboa.seguranca.UsuarioAutenticado;
+import br.com.ordodev.qualaboa.usuario.PapelUsuario;
 import br.com.ordodev.qualaboa.usuario.Usuario;
 import br.com.ordodev.qualaboa.usuario.UsuarioRepository;
 
@@ -30,6 +31,7 @@ public class EventoService {
 	}
 
 	public Evento criar(DadosEvento dados, UsuarioAutenticado usuarioAutenticado) {
+		exigirPapelLocalDeCurso(usuarioAutenticado);
 		validarCamposObrigatorios(dados);
 		Instant agora = clock.instant();
 		validarCoerenciaDeDatas(dados.inicio(), dados.termino(), agora);
@@ -42,14 +44,17 @@ public class EventoService {
 	}
 
 	public Evento buscarPorId(UUID eventoId, UsuarioAutenticado usuarioAutenticado) {
+		exigirPapelLocalDeCurso(usuarioAutenticado);
 		return buscarEventoDoTitular(eventoId, usuarioAutenticado);
 	}
 
 	public List<Evento> listarDoUsuario(UsuarioAutenticado usuarioAutenticado) {
+		exigirPapelLocalDeCurso(usuarioAutenticado);
 		return eventoRepository.findByLocalId(usuarioAutenticado.id());
 	}
 
 	public Evento atualizar(UUID eventoId, DadosEvento dados, UsuarioAutenticado usuarioAutenticado) {
+		exigirPapelLocalDeCurso(usuarioAutenticado);
 		Evento evento = buscarEventoDoTitular(eventoId, usuarioAutenticado);
 		validarCamposObrigatorios(dados);
 		Instant agora = clock.instant();
@@ -61,6 +66,7 @@ public class EventoService {
 	}
 
 	public Evento publicar(UUID eventoId, UsuarioAutenticado usuarioAutenticado) {
+		exigirPapelLocalDeCurso(usuarioAutenticado);
 		Evento evento = buscarEventoDoTitular(eventoId, usuarioAutenticado);
 		if (!loteIngressoRepository.existsByEventoId(eventoId)) {
 			throw new RegraDeNegocioException("RN04", "Evento sem lote nao pode ser publicado");
@@ -79,6 +85,13 @@ public class EventoService {
 		return eventoRepository.findById(eventoId)
 				.filter(evento -> evento.getLocal().getId().equals(usuarioAutenticado.id()))
 				.orElseThrow(() -> new AcessoNegadoException("Evento nao encontrado"));
+	}
+
+	// RN01: participante nao acessa nenhum endpoint de evento nesta entrega, ver ADR 0003
+	private void exigirPapelLocalDeCurso(UsuarioAutenticado usuarioAutenticado) {
+		if (usuarioAutenticado.papel() != PapelUsuario.LOCAL_DE_CURSO) {
+			throw new AcessoNegadoException("Acesso restrito ao papel de local de curso");
+		}
 	}
 
 	private void validarCamposObrigatorios(DadosEvento dados) {

@@ -33,6 +33,7 @@ import br.com.ordodev.qualaboa.evento.Evento;
 import br.com.ordodev.qualaboa.evento.EventoService;
 import br.com.ordodev.qualaboa.evento.LoteIngresso;
 import br.com.ordodev.qualaboa.evento.LoteIngressoService;
+import br.com.ordodev.qualaboa.excecao.AcessoNegadoException;
 import br.com.ordodev.qualaboa.excecao.RegraDeNegocioException;
 import br.com.ordodev.qualaboa.seguranca.UsuarioAutenticado;
 import br.com.ordodev.qualaboa.usuario.PapelUsuario;
@@ -58,6 +59,12 @@ class EventoControllerTest {
 		UsuarioAutenticado usuarioAutenticado = new UsuarioAutenticado(LOCAL_ID, PapelUsuario.LOCAL_DE_CURSO);
 		return authentication(new UsernamePasswordAuthenticationToken(usuarioAutenticado, null,
 				List.of(new SimpleGrantedAuthority("ROLE_LOCAL_DE_CURSO"))));
+	}
+
+	private org.springframework.test.web.servlet.request.RequestPostProcessor comoParticipante() {
+		UsuarioAutenticado usuarioAutenticado = new UsuarioAutenticado(UUID.randomUUID(), PapelUsuario.PARTICIPANTE);
+		return authentication(new UsernamePasswordAuthenticationToken(usuarioAutenticado, null,
+				List.of(new SimpleGrantedAuthority("ROLE_PARTICIPANTE"))));
 	}
 
 	private Evento eventoFixture() {
@@ -196,6 +203,51 @@ class EventoControllerTest {
 				.content(corpoLote))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.nome").value("Lote unico"));
+	}
+
+	@Test
+	void semTokenDevolve401() throws Exception {
+		mockMvc.perform(get("/api/v1/eventos"))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void recusaCriacaoDeParticipanteCom403() throws Exception {
+		when(eventoService.criar(any(), any())).thenThrow(new AcessoNegadoException("Acesso restrito ao papel de local de curso"));
+
+		mockMvc.perform(post("/api/v1/eventos")
+				.with(comoParticipante()).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(corpoValido()))
+				.andExpect(status().isForbidden());
+	}
+
+	// nome exato previsto na issue RN01
+	@Test
+	void recusaPublicacaoDeParticipanteCom403() throws Exception {
+		when(eventoService.publicar(any(), any()))
+				.thenThrow(new AcessoNegadoException("Acesso restrito ao papel de local de curso"));
+
+		mockMvc.perform(post("/api/v1/eventos/11111111-1111-1111-1111-111111111111/publicacao")
+				.with(comoParticipante()).with(csrf()))
+				.andExpect(status().isForbidden());
+	}
+
+	// nome exato previsto na issue RN09
+	@Test
+	void recusaAcessoAEventoDeOutroTitularCom403() throws Exception {
+		when(eventoService.buscarPorId(any(), any())).thenThrow(new AcessoNegadoException("Evento nao encontrado"));
+
+		mockMvc.perform(get("/api/v1/eventos/11111111-1111-1111-1111-111111111111").with(comoLocalDeCurso()).with(csrf()))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void permiteAcessoDeLocalDeCursoAoProprioEvento() throws Exception {
+		when(eventoService.buscarPorId(any(), any())).thenReturn(eventoFixture());
+
+		mockMvc.perform(get("/api/v1/eventos/11111111-1111-1111-1111-111111111111").with(comoLocalDeCurso()).with(csrf()))
+				.andExpect(status().isOk());
 	}
 
 }

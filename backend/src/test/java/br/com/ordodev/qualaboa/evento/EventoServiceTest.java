@@ -217,6 +217,23 @@ class EventoServiceTest {
 	}
 
 	@Test
+	void recusaCriacaoQuandoPapelNaoELocalDeCurso() {
+		UsuarioAutenticado participante = new UsuarioAutenticado(LOCAL_ID, PapelUsuario.PARTICIPANTE);
+		DadosEvento dados = dadosValidos(AGORA.plusSeconds(3600), AGORA.plusSeconds(7200));
+
+		assertThatThrownBy(() -> eventoService.criar(dados, participante))
+				.isInstanceOf(AcessoNegadoException.class);
+	}
+
+	@Test
+	void recusaPublicacaoQuandoPapelNaoELocalDeCurso() {
+		UsuarioAutenticado participante = new UsuarioAutenticado(LOCAL_ID, PapelUsuario.PARTICIPANTE);
+
+		assertThatThrownBy(() -> eventoService.publicar(EVENTO_ID, participante))
+				.isInstanceOf(AcessoNegadoException.class);
+	}
+
+	@Test
 	void recusaAtualizacaoDeEventoDeOutroTitular() {
 		Usuario outroLocal = comId(new Usuario("outro@qualaboa.dev", "hash", "Outro Local", PapelUsuario.LOCAL_DE_CURSO, AGORA), OUTRO_LOCAL_ID);
 		Evento eventoDeOutro = new Evento(outroLocal, "Semana de Outro", "Descricao", "Area", AGORA.plusSeconds(3600),
