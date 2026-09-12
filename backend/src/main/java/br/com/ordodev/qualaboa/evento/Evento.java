@@ -115,6 +115,24 @@ public class Evento {
 		this.atualizadoEm = instante;
 	}
 
+	void atualizarDados(String titulo, String descricao, String areaConhecimento, Instant inicio, Instant termino,
+			String logradouro, String numero, String bairro, String cidade, String uf, String cep,
+			Integer capacidadeTotal, Instant instante) {
+		this.titulo = titulo;
+		this.descricao = descricao;
+		this.areaConhecimento = areaConhecimento;
+		this.inicio = inicio;
+		this.termino = termino;
+		this.logradouro = logradouro;
+		this.numero = numero;
+		this.bairro = bairro;
+		this.cidade = cidade;
+		this.uf = uf;
+		this.cep = cep;
+		this.capacidadeTotal = capacidadeTotal;
+		this.atualizadoEm = instante;
+	}
+
 	public UUID getId() {
 		return id;
 	}

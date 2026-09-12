@@ -9,4 +9,6 @@ public interface EventoRepository extends JpaRepository<Evento, UUID> {
 
 	List<Evento> findBySituacao(SituacaoEvento situacao);
 
+	List<Evento> findByLocalId(UUID localId);
+
 }
