@@ -1,13 +1,18 @@
 package br.com.ordodev.qualaboa.evento;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,9 +30,13 @@ import br.com.ordodev.qualaboa.usuario.Usuario;
 class EventoServiceTest {
 
 	private static final Instant AGORA = Instant.parse("2026-09-12T12:00:00Z");
+	private static final UUID EVENTO_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
 	@Mock
 	private EventoRepository eventoRepository;
+
+	@Mock
+	private LoteIngressoRepository loteIngressoRepository;
 
 	private Clock clock;
 	private EventoService eventoService;
@@ -36,7 +45,7 @@ class EventoServiceTest {
 	@BeforeEach
 	void configurar() {
 		clock = Clock.fixed(AGORA, ZoneOffset.UTC);
-		eventoService = new EventoService(eventoRepository, clock);
+		eventoService = new EventoService(eventoRepository, loteIngressoRepository, clock);
 		local = new Usuario("local@qualaboa.dev", "hash", "Local de Curso Semente", PapelUsuario.LOCAL_DE_CURSO, AGORA);
 		lenient().when(eventoRepository.save(any())).thenAnswer(invocacao -> invocacao.getArgument(0));
 	}
@@ -100,6 +109,39 @@ class EventoServiceTest {
 
 	private String campo(String campoAusente, String nomeDoCampo, String valorValido) {
 		return campoAusente.equals(nomeDoCampo) ? null : valorValido;
+	}
+
+	@Test
+	void recusaPublicacaoDeEventoSemLote() {
+		Evento evento = eventoValido(AGORA.plusSeconds(3600), AGORA.plusSeconds(7200));
+		when(eventoRepository.findById(EVENTO_ID)).thenReturn(Optional.of(evento));
+		when(loteIngressoRepository.existsByEventoId(EVENTO_ID)).thenReturn(false);
+
+		assertThatThrownBy(() -> eventoService.publicar(EVENTO_ID))
+				.asInstanceOf(throwable(RegraDeNegocioException.class))
+				.extracting(RegraDeNegocioException::getRegra)
+				.isEqualTo("RN04");
+	}
+
+	@Test
+	void permitePublicacaoDeEventoComLote() {
+		Evento evento = eventoValido(AGORA.plusSeconds(3600), AGORA.plusSeconds(7200));
+		when(eventoRepository.findById(EVENTO_ID)).thenReturn(Optional.of(evento));
+		when(loteIngressoRepository.existsByEventoId(EVENTO_ID)).thenReturn(true);
+
+		Evento publicado = eventoService.publicar(EVENTO_ID);
+
+		assertThat(publicado.getSituacao()).isEqualTo(SituacaoEvento.PUBLICADO);
+	}
+
+	@Test
+	void listaApenasEventosPublicadosNaConsultaPublica() {
+		Evento publicado = eventoValido(AGORA.plusSeconds(3600), AGORA.plusSeconds(7200));
+		when(eventoRepository.findBySituacao(SituacaoEvento.PUBLICADO)).thenReturn(List.of(publicado));
+
+		List<Evento> resultado = eventoService.listarPublicados();
+
+		assertThat(resultado).containsExactly(publicado);
 	}
 
 }

@@ -2,6 +2,8 @@ package br.com.ordodev.qualaboa.evento;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -11,10 +13,12 @@ import br.com.ordodev.qualaboa.excecao.RegraDeNegocioException;
 public class EventoService {
 
 	private final EventoRepository eventoRepository;
+	private final LoteIngressoRepository loteIngressoRepository;
 	private final Clock clock;
 
-	public EventoService(EventoRepository eventoRepository, Clock clock) {
+	public EventoService(EventoRepository eventoRepository, LoteIngressoRepository loteIngressoRepository, Clock clock) {
 		this.eventoRepository = eventoRepository;
+		this.loteIngressoRepository = loteIngressoRepository;
 		this.clock = clock;
 	}
 
@@ -60,6 +64,19 @@ public class EventoService {
 		if (!evento.getTermino().isAfter(evento.getInicio())) {
 			throw new RegraDeNegocioException("RN03", "termino", "Termino deve ser posterior ao inicio");
 		}
+	}
+
+	public Evento publicar(UUID eventoId) {
+		Evento evento = eventoRepository.findById(eventoId).orElseThrow();
+		if (!loteIngressoRepository.existsByEventoId(eventoId)) {
+			throw new RegraDeNegocioException("RN04", "Evento sem lote nao pode ser publicado");
+		}
+		evento.publicar(clock.instant());
+		return eventoRepository.save(evento);
+	}
+
+	public List<Evento> listarPublicados() {
+		return eventoRepository.findBySituacao(SituacaoEvento.PUBLICADO);
 	}
 
 }
