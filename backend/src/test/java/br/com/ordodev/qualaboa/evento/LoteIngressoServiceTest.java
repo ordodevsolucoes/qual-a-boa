@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -106,6 +107,35 @@ class LoteIngressoServiceTest {
 				.asInstanceOf(throwable(RegraDeNegocioException.class))
 				.extracting(RegraDeNegocioException::getRegra)
 				.isEqualTo("RN06");
+	}
+
+	private void mockLotesExistentes(LoteIngresso... lotes) {
+		when(loteIngressoRepository.findByEventoId(any())).thenReturn(List.of(lotes));
+	}
+
+	@Test
+	void aceitaLoteQuandoSomaIgualACapacidade() {
+		LoteIngresso existente = new LoteIngresso(evento, "Lote 1", 90, BigDecimal.TEN, AGORA.plusSeconds(3600), AGORA.plusSeconds(7200));
+		mockLotesExistentes(existente);
+		LoteIngresso novo = new LoteIngresso(evento, "Lote 2", 10, BigDecimal.TEN, AGORA.plusSeconds(7200), AGORA.plusSeconds(10800));
+
+		LoteIngresso criado = loteIngressoService.criar(evento, novo);
+
+		assertThat(criado.getQuantidade()).isEqualTo(10);
+	}
+
+	@Test
+	void recusaLoteQueExcedeCapacidadeInformandoFolga() {
+		LoteIngresso existente = new LoteIngresso(evento, "Lote 1", 90, BigDecimal.TEN, AGORA.plusSeconds(3600), AGORA.plusSeconds(7200));
+		mockLotesExistentes(existente);
+		LoteIngresso novo = new LoteIngresso(evento, "Lote 2", 11, BigDecimal.TEN, AGORA.plusSeconds(7200), AGORA.plusSeconds(10800));
+
+		assertThatThrownBy(() -> loteIngressoService.criar(evento, novo))
+				.asInstanceOf(throwable(RegraDeNegocioException.class))
+				.satisfies(excecao -> {
+					assertThat(excecao.getRegra()).isEqualTo("RN07");
+					assertThat(excecao.getMessage()).contains("10");
+				});
 	}
 
 }
