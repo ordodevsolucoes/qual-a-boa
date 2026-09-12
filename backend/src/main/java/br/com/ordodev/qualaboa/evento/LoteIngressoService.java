@@ -24,8 +24,20 @@ public class LoteIngressoService {
 		validarVigencia(lote, evento);
 		List<LoteIngresso> lotesExistentes = loteIngressoRepository.findByEventoId(evento.getId());
 		validarCapacidade(evento, lotesExistentes, lote);
+		validarSobreposicao(lotesExistentes, lote);
 		lote.registrarCriacao(clock.instant());
 		return loteIngressoRepository.save(lote);
+	}
+
+	private void validarSobreposicao(List<LoteIngresso> lotesExistentes, LoteIngresso lote) {
+		boolean sobrepoe = lotesExistentes.stream().anyMatch(existente -> seSobrepoe(existente, lote));
+		if (sobrepoe) {
+			throw new RegraDeNegocioException("RN08", "vigenciaInicio", "Vigencia do lote se sobrepoe a outro lote do mesmo evento");
+		}
+	}
+
+	private boolean seSobrepoe(LoteIngresso a, LoteIngresso b) {
+		return a.getVigenciaInicio().isBefore(b.getVigenciaFim()) && b.getVigenciaInicio().isBefore(a.getVigenciaFim());
 	}
 
 	private void validarCapacidade(Evento evento, List<LoteIngresso> lotesExistentes, LoteIngresso lote) {

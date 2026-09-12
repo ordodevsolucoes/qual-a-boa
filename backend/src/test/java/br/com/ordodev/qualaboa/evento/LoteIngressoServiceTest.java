@@ -138,4 +138,51 @@ class LoteIngressoServiceTest {
 				});
 	}
 
+	@Test
+	void aceitaLotesComVigenciasEncostadas() {
+		LoteIngresso existente = new LoteIngresso(evento, "Lote 1", 10, BigDecimal.TEN, AGORA.plusSeconds(3600), AGORA.plusSeconds(7200));
+		mockLotesExistentes(existente);
+		LoteIngresso novo = new LoteIngresso(evento, "Lote 2", 10, BigDecimal.TEN, AGORA.plusSeconds(7200), AGORA.plusSeconds(10800));
+
+		LoteIngresso criado = loteIngressoService.criar(evento, novo);
+
+		assertThat(criado.getVigenciaInicio()).isEqualTo(AGORA.plusSeconds(7200));
+	}
+
+	@Test
+	void recusaLoteComVigenciaSobreposta() {
+		LoteIngresso existente = new LoteIngresso(evento, "Lote 1", 10, BigDecimal.TEN, AGORA.plusSeconds(3600), AGORA.plusSeconds(10800));
+		mockLotesExistentes(existente);
+		LoteIngresso novo = new LoteIngresso(evento, "Lote 2", 10, BigDecimal.TEN, AGORA.plusSeconds(7200), AGORA.plusSeconds(14400));
+
+		assertThatThrownBy(() -> loteIngressoService.criar(evento, novo))
+				.asInstanceOf(throwable(RegraDeNegocioException.class))
+				.extracting(RegraDeNegocioException::getRegra)
+				.isEqualTo("RN08");
+	}
+
+	@Test
+	void recusaLoteComVigenciaContidaNaOutra() {
+		LoteIngresso existente = new LoteIngresso(evento, "Lote 1", 10, BigDecimal.TEN, AGORA.plusSeconds(3600), AGORA.plusSeconds(18000));
+		mockLotesExistentes(existente);
+		LoteIngresso novo = new LoteIngresso(evento, "Lote 2", 10, BigDecimal.TEN, AGORA.plusSeconds(7200), AGORA.plusSeconds(10800));
+
+		assertThatThrownBy(() -> loteIngressoService.criar(evento, novo))
+				.asInstanceOf(throwable(RegraDeNegocioException.class))
+				.extracting(RegraDeNegocioException::getRegra)
+				.isEqualTo("RN08");
+	}
+
+	@Test
+	void recusaLoteComVigenciaDeInicioIdentico() {
+		LoteIngresso existente = new LoteIngresso(evento, "Lote 1", 10, BigDecimal.TEN, AGORA.plusSeconds(3600), AGORA.plusSeconds(10800));
+		mockLotesExistentes(existente);
+		LoteIngresso novo = new LoteIngresso(evento, "Lote 2", 10, BigDecimal.TEN, AGORA.plusSeconds(3600), AGORA.plusSeconds(7200));
+
+		assertThatThrownBy(() -> loteIngressoService.criar(evento, novo))
+				.asInstanceOf(throwable(RegraDeNegocioException.class))
+				.extracting(RegraDeNegocioException::getRegra)
+				.isEqualTo("RN08");
+	}
+
 }
