@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.ordodev.qualaboa.excecao.AcessoNegadoException;
+import br.com.ordodev.qualaboa.excecao.CredenciaisInvalidasException;
 import br.com.ordodev.qualaboa.excecao.RegraDeNegocioException;
 
 // ProblemDetail (RFC 9457) para todo erro da API; nenhum handler aqui pode devolver
@@ -26,6 +27,11 @@ public class ManipuladorDeExcecoes {
 			problema.setProperty("campo", excecao.getCampo());
 		}
 		return problema;
+	}
+
+	@ExceptionHandler(CredenciaisInvalidasException.class)
+	public ProblemDetail tratarCredenciaisInvalidas(CredenciaisInvalidasException excecao) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, excecao.getMessage());
 	}
 
 	@ExceptionHandler(AcessoNegadoException.class)
