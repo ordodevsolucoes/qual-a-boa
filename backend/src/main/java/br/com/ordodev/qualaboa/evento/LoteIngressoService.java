@@ -20,8 +20,18 @@ public class LoteIngressoService {
 
 	public LoteIngresso criar(Evento evento, LoteIngresso lote) {
 		validarCamposObrigatorios(lote);
+		validarVigencia(lote, evento);
 		lote.registrarCriacao(clock.instant());
 		return loteIngressoRepository.save(lote);
+	}
+
+	private void validarVigencia(LoteIngresso lote, Evento evento) {
+		if (!lote.getVigenciaFim().isAfter(lote.getVigenciaInicio())) {
+			throw new RegraDeNegocioException("RN06", "vigenciaFim", "Fim da vigencia deve ser posterior ao inicio dela");
+		}
+		if (lote.getVigenciaFim().isAfter(evento.getInicio())) {
+			throw new RegraDeNegocioException("RN06", "vigenciaFim", "Fim da vigencia deve ser anterior ou igual ao inicio do evento");
+		}
 	}
 
 	private void validarCamposObrigatorios(LoteIngresso lote) {

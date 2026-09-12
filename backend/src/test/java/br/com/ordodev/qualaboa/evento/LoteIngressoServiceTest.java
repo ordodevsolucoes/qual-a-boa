@@ -1,5 +1,6 @@
 package br.com.ordodev.qualaboa.evento;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,6 +13,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -73,6 +75,37 @@ class LoteIngressoServiceTest {
 				.asInstanceOf(throwable(RegraDeNegocioException.class))
 				.extracting(RegraDeNegocioException::getRegra)
 				.isEqualTo("RN05");
+	}
+
+	@Test
+	void aceitaLoteComVigenciaTerminandoNoInicioDoEvento() {
+		LoteIngresso lote = new LoteIngresso(evento, "Lote", 10, BigDecimal.TEN, AGORA.plusSeconds(3600), evento.getInicio());
+
+		LoteIngresso criado = loteIngressoService.criar(evento, lote);
+
+		assertThat(criado.getVigenciaFim()).isEqualTo(evento.getInicio());
+	}
+
+	@Test
+	void recusaLoteComVigenciaAlemDoInicioDoEvento() {
+		Instant vigenciaFim = evento.getInicio().plusSeconds(1);
+		LoteIngresso lote = new LoteIngresso(evento, "Lote", 10, BigDecimal.TEN, AGORA.plusSeconds(3600), vigenciaFim);
+
+		assertThatThrownBy(() -> loteIngressoService.criar(evento, lote))
+				.asInstanceOf(throwable(RegraDeNegocioException.class))
+				.extracting(RegraDeNegocioException::getRegra)
+				.isEqualTo("RN06");
+	}
+
+	@Test
+	void recusaLoteComVigenciaFimAnteriorOuIgualAoInicio() {
+		Instant vigenciaInicio = AGORA.plusSeconds(3600);
+		LoteIngresso lote = new LoteIngresso(evento, "Lote", 10, BigDecimal.TEN, vigenciaInicio, vigenciaInicio);
+
+		assertThatThrownBy(() -> loteIngressoService.criar(evento, lote))
+				.asInstanceOf(throwable(RegraDeNegocioException.class))
+				.extracting(RegraDeNegocioException::getRegra)
+				.isEqualTo("RN06");
 	}
 
 }
