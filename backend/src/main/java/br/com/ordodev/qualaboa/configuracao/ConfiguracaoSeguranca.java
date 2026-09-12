@@ -19,7 +19,8 @@ public class ConfiguracaoSeguranca {
 	@Value("${app.cors.allowed-origins}")
 	private String origensPermitidas;
 
-	// health/info precisam ficar acessiveis sem credencial para o orquestrador (Cloud Run) verificar o servico
+	// health/info precisam ficar acessiveis sem credencial para o orquestrador (Cloud Run) verificar o servico;
+	// swagger-ui e api-docs ficam livres porque documentam a API e nao expoem dado de usuario
 	@Bean
 	SecurityFilterChain filtroDeSeguranca(HttpSecurity http, CorsConfigurationSource fonteDeConfiguracaoCors) throws Exception {
 		http
@@ -27,6 +28,7 @@ public class ConfiguracaoSeguranca {
 			.cors(cors -> cors.configurationSource(fonteDeConfiguracaoCors))
 			.authorizeHttpRequests(autorizacao -> autorizacao
 				.requestMatchers(EndpointRequest.to("health", "info")).permitAll()
+				.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 				.anyRequest().authenticated());
 		return http.build();
 	}
