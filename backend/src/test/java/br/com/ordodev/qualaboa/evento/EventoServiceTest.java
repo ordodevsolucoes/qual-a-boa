@@ -12,6 +12,8 @@ import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -63,6 +65,41 @@ class EventoServiceTest {
 				.asInstanceOf(throwable(RegraDeNegocioException.class))
 				.extracting(RegraDeNegocioException::getRegra)
 				.isEqualTo("RN03");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "titulo", "descricao", "areaConhecimento", "inicio", "termino", "logradouro", "numero",
+			"bairro", "cidade", "uf", "cep", "capacidadeTotal" })
+	void recusaEventoComCampoObrigatorioAusente(String campoAusente) {
+		Evento evento = eventoComCampoAusente(campoAusente);
+
+		assertThatThrownBy(() -> eventoService.criar(evento))
+				.asInstanceOf(throwable(RegraDeNegocioException.class))
+				.extracting(RegraDeNegocioException::getRegra)
+				.isEqualTo("RN02");
+	}
+
+	private Evento eventoComCampoAusente(String campoAusente) {
+		Instant inicio = AGORA.plusSeconds(3600);
+		Instant termino = AGORA.plusSeconds(7200);
+		return new Evento(
+				local,
+				campo(campoAusente, "titulo", "Semana da Computacao"),
+				campo(campoAusente, "descricao", "Descricao do evento"),
+				campo(campoAusente, "areaConhecimento", "Computacao"),
+				campoAusente.equals("inicio") ? null : inicio,
+				campoAusente.equals("termino") ? null : termino,
+				campo(campoAusente, "logradouro", "Rua Um"),
+				campo(campoAusente, "numero", "100"),
+				campo(campoAusente, "bairro", "Centro"),
+				campo(campoAusente, "cidade", "Recife"),
+				campo(campoAusente, "uf", "PE"),
+				campo(campoAusente, "cep", "50000000"),
+				campoAusente.equals("capacidadeTotal") ? null : 100);
+	}
+
+	private String campo(String campoAusente, String nomeDoCampo, String valorValido) {
+		return campoAusente.equals(nomeDoCampo) ? null : valorValido;
 	}
 
 }
