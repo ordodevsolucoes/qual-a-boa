@@ -1,0 +1,134 @@
+.formulario {
+  background: var(--card);
+  border-radius: var(--raio);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formulario__grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.formulario__campo-largo {
+  grid-column: 1 / -1;
+}
+
+.formulario__lotes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--linha);
+}
+
+.formulario__lotes-rotulo {
+  font-family: var(--fonte-titulo);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--texto);
+  margin: 0;
+}
+
+.formulario__lista-lotes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lote-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border-radius: var(--raio);
+  padding: 11px 14px;
+}
+
+.lote-linha__nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.lote-linha__quantidade {
+  color: var(--texto-3);
+  font-size: 12px;
+}
+
+.lote-linha__preco {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  color: var(--acento);
+  font-size: 13px;
+}
+
+.lote-linha__remover {
+  background: transparent;
+  border: none;
+  color: var(--texto-3);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.lote-linha__remover:hover {
+  color: var(--erro);
+}
+
+.formulario__soma-vagas {
+  color: var(--texto-3);
+  font-size: 12px;
+}
+
+.formulario__linha-adicao {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.formulario__botao-adicionar {
+  width: 100%;
+}
+
+.formulario__erro-geral {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid var(--erro);
+  color: var(--erro);
+  border-radius: var(--raio);
+  padding: 10px 14px;
+  font-size: 13px;
+  margin: 0;
+}
+
+.formulario__acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.formulario__aviso {
+  color: var(--texto-3);
+  font-size: 12px;
+  margin: 0;
+}
+
+.formulario__botoes {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .formulario__grade,
+  .formulario__linha-adicao {
+    grid-template-columns: 1fr;
+  }
+}
