@@ -1,0 +1,15 @@
+:root {
+  --bg: #0C0C0D;
+  --card: #161617;
+  --card-2: #1F1F21;
+  --texto: #F5F5F4;
+  --texto-2: #A1A1A0;
+  --texto-3: #6B6B6A;
+  --linha: #2A2A2C;
+  --acento: #A78BFA;
+  --acento-contraste: #16112B;
+  --erro: #F87171;
+  --fonte-titulo: 'Space Grotesk', sans-serif;
+  --fonte-corpo: 'Inter', sans-serif;
+  --raio: 8px;
+}
