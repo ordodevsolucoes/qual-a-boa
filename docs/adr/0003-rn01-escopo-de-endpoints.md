@@ -4,7 +4,8 @@ Data: 12/09/2026. Situacao: aceita.
 
 ## Contexto
 
-O texto da RN01 fala em "criacao, edicao e publicacao". A tarefa pede, para "cada endpoint
+O texto da RN01 restringe criação, edição e publicação de evento ao papel LOCAL_DE_CURSO.
+A tarefa pede, para "cada endpoint
 protegido" sob `/api/v1/eventos`, a mesma matriz de teste: sem token 401, token de
 PARTICIPANTE 403, token de LOCAL_DE_CURSO sobre evento de outro titular 403, token de
 LOCAL_DE_CURSO sobre evento proprio sucesso. Isso inclui GET, que a RN01 nao restringe por

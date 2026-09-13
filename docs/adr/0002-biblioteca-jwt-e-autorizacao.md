@@ -4,11 +4,9 @@ Data: 12/09/2026. Situacao: aceita.
 
 ## Contexto
 
-Sessao sem supervisao, decisoes de implementacao precisam ser tomadas sem consulta.
-Precisamos de: biblioteca de JWT HS256, formato de erro RFC 9457 em toda a API, e um jeito
-de RN01/RN09 (restricao de papel e de titularidade) serem verificados na camada de servico,
-mesmo com a camada REST e a autenticacao sendo construidas em blocos separados e em ordem
-(bloco 2 antes do bloco 3).
+A entrega 1 exige autenticação com JWT HS256, tratamento de erro no formato RFC 9457 em
+toda a API, e verificação de papel e titularidade (RN01 e RN09) na camada de serviço,
+mantendo os serviços testáveis sem contexto Spring.
 
 ## Decisao
 
