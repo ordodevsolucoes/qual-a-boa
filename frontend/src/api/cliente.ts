@@ -1,17 +1,18 @@
 const URL_BASE = import.meta.env.VITE_API_URL
 
-const CHAVE_TOKEN = 'qualaboa:token'
+// token so em memoria: recarregar a pagina desloga o usuario, de proposito, nesta entrega
+let tokenAtual: string | null = null
 
 export function obterToken(): string | null {
-  return localStorage.getItem(CHAVE_TOKEN)
+  return tokenAtual
 }
 
 export function definirToken(token: string): void {
-  localStorage.setItem(CHAVE_TOKEN, token)
+  tokenAtual = token
 }
 
 export function limparToken(): void {
-  localStorage.removeItem(CHAVE_TOKEN)
+  tokenAtual = null
 }
 
 interface ErroDeCampo {
@@ -55,8 +56,10 @@ export async function requisicao(caminho: string, opcoes: RequestInit = {}): Pro
 
   const resposta = await fetch(`${URL_BASE}${caminho}`, { ...opcoes, headers: cabecalhos })
 
-  // sessao expirada ou token invalido: nao ha como a tela atual continuar autenticada
-  if (resposta.status === 401) {
+  // so forca logout quando o 401 veio de uma requisicao que usava um token: sessao
+  // expirada ou invalidada. sem token, o 401 e resposta normal de login com credencial errada,
+  // e quem chamou precisa do "detail" do erro para mostrar na tela, nao de um redirect
+  if (token && resposta.status === 401) {
     limparToken()
     window.location.href = '/login'
   }
