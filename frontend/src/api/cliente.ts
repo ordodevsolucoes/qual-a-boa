@@ -75,12 +75,3 @@ export async function requisicao(caminho: string, opcoes: RequestInit = {}): Pro
 
   return resposta
 }
-
-export async function verificarSaudeDaApi(): Promise<boolean> {
-  try {
-    const resposta = await fetch(`${URL_BASE}/actuator/health`)
-    return resposta.ok
-  } catch {
-    return false
-  }
-}
