@@ -247,11 +247,40 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
     setErroGeral(excecao instanceof ErroDaApi ? excecao.detail : 'Erro inesperado ao comunicar com a API')
   }
 
-  async function salvarRascunho() {
-    if (eventoIdCriado) {
-      onConcluido()
-      return
+  // usado tanto por "salvar rascunho" quanto por "publicar": cria o evento se ainda nao
+  // existe e envia os lotes que faltam, na ordem em que foram adicionados. e idempotente
+  // em relacao ao progresso ja feito, entao uma nova tentativa apos uma falha no meio do
+  // caminho nao recria o evento nem reenvia os lotes que ja foram aceitos pelo servidor
+  async function criarEventoELotes(dadosEvento: EventoRequest): Promise<string> {
+    let id = eventoIdCriado
+    if (!id) {
+      const respostaEvento = await requisicao('/api/v1/eventos', { method: 'POST', body: JSON.stringify(dadosEvento) })
+      const evento = (await respostaEvento.json()) as EventoResponse
+      id = evento.id
+      setEventoIdCriado(id)
     }
+
+    const criados = new Set(lotesCriados)
+    for (const lote of lotes) {
+      if (criados.has(lote.idLocal)) {
+        continue
+      }
+      const payload: LoteIngressoRequest = {
+        nome: lote.nome,
+        quantidade: lote.quantidade,
+        preco: lote.preco,
+        vigenciaInicio: new Date(lote.vigenciaInicio).toISOString(),
+        vigenciaFim: new Date(lote.vigenciaFim).toISOString(),
+      }
+      await requisicao(`/api/v1/eventos/${id}/lotes`, { method: 'POST', body: JSON.stringify(payload) })
+      criados.add(lote.idLocal)
+      setLotesCriados(new Set(criados))
+    }
+
+    return id
+  }
+
+  async function salvarRascunho() {
     const dados = validarEvento()
     if (!dados) {
       return
@@ -259,7 +288,7 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
     setAcaoEmAndamento('rascunho')
     setErroGeral(null)
     try {
-      await requisicao('/api/v1/eventos', { method: 'POST', body: JSON.stringify(dados) })
+      await criarEventoELotes(dados)
       onConcluido()
     } catch (excecao) {
       tratarErroEnvio(excecao)
@@ -279,31 +308,7 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
     setAcaoEmAndamento('publicar')
     setErroGeral(null)
     try {
-      let id = eventoIdCriado
-      if (!id) {
-        const respostaEvento = await requisicao('/api/v1/eventos', { method: 'POST', body: JSON.stringify(dadosEvento) })
-        const evento = (await respostaEvento.json()) as EventoResponse
-        id = evento.id
-        setEventoIdCriado(id)
-      }
-
-      const criados = new Set(lotesCriados)
-      for (const lote of lotes) {
-        if (criados.has(lote.idLocal)) {
-          continue
-        }
-        const payload: LoteIngressoRequest = {
-          nome: lote.nome,
-          quantidade: lote.quantidade,
-          preco: lote.preco,
-          vigenciaInicio: new Date(lote.vigenciaInicio).toISOString(),
-          vigenciaFim: new Date(lote.vigenciaFim).toISOString(),
-        }
-        await requisicao(`/api/v1/eventos/${id}/lotes`, { method: 'POST', body: JSON.stringify(payload) })
-        criados.add(lote.idLocal)
-        setLotesCriados(new Set(criados))
-      }
-
+      const id = await criarEventoELotes(dadosEvento)
       await requisicao(`/api/v1/eventos/${id}/publicacao`, { method: 'POST' })
       onConcluido()
     } catch (excecao) {
