@@ -41,3 +41,33 @@
   color: var(--erro);
   font-size: 12px;
 }
+
+.campo__envoltorio-senha {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.campo__entrada--com-botao {
+  padding-right: 68px;
+}
+
+.campo__alternar-senha {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--texto-3);
+  font-family: var(--fonte-titulo);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.campo__alternar-senha:hover {
+  color: var(--texto);
+}

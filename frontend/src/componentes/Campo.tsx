@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import './Campo.css'
 
@@ -32,6 +32,7 @@ export function Campo(props: PropsCampo) {
   const idGerado = useId()
   const idCampo = props.id ?? idGerado
   const classeContainer = ['campo', props.className].filter(Boolean).join(' ')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
 
   let entrada: ReactNode
 
@@ -60,10 +61,32 @@ export function Campo(props: PropsCampo) {
       </select>
     )
   } else {
-    const { label: _label, erro, className: _className, como: _como, ...resto } = props
-    entrada = (
-      <input id={idCampo} className="campo__entrada" aria-invalid={erro ? true : undefined} {...resto} />
-    )
+    const { label: _label, erro, className: _className, como: _como, type, ...resto } = props
+    if (type === 'password') {
+      entrada = (
+        <div className="campo__envoltorio-senha">
+          <input
+            id={idCampo}
+            type={mostrarSenha ? 'text' : 'password'}
+            className="campo__entrada campo__entrada--com-botao"
+            aria-invalid={erro ? true : undefined}
+            {...resto}
+          />
+          <button
+            type="button"
+            className="campo__alternar-senha"
+            onClick={() => setMostrarSenha((atual) => !atual)}
+            aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+          >
+            {mostrarSenha ? 'Ocultar' : 'Mostrar'}
+          </button>
+        </div>
+      )
+    } else {
+      entrada = (
+        <input id={idCampo} type={type} className="campo__entrada" aria-invalid={erro ? true : undefined} {...resto} />
+      )
+    }
   }
 
   return (
