@@ -158,6 +158,53 @@
   color: var(--erro);
 }
 
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 24px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.modal-caixa {
+  width: 100%;
+  max-width: 760px;
+  background: var(--card);
+  border-radius: var(--raio);
+}
+
+.modal-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 0;
+}
+
+.modal-titulo {
+  font-family: var(--fonte-titulo);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-fechar {
+  background: transparent;
+  border: none;
+  color: var(--texto-2);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.modal-fechar:hover {
+  color: var(--texto);
+}
+
 @media (max-width: 720px) {
   .painel__cartoes {
     grid-template-columns: 1fr;
@@ -165,5 +212,9 @@
 
   .cartao-evento {
     flex-wrap: wrap;
+  }
+
+  .modal-fundo {
+    padding: 16px;
   }
 }

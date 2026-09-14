@@ -17,6 +17,18 @@
   grid-column: 1 / -1;
 }
 
+.formulario__campo-cep {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.formulario__cep-status {
+  color: var(--texto-3);
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
 .formulario__lotes {
   display: flex;
   flex-direction: column;

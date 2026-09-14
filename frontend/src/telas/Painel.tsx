@@ -47,6 +47,19 @@ export function Painel() {
     carregarEventos()
   }, [carregarEventos])
 
+  // com o formulario aberto em modal, a pagina de tras fica travada tambem para rolagem,
+  // nao so para clique -- o overlay ja cobre a tela e nao tem onClick, entao so o X fecha
+  useEffect(() => {
+    if (!mostrarFormulario) {
+      return
+    }
+    const overflowOriginal = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = overflowOriginal
+    }
+  }, [mostrarFormulario])
+
   async function publicarRapido(id: string) {
     setPublicandoId(id)
     setErroPorId((atual) => {
@@ -88,13 +101,30 @@ export function Painel() {
       </div>
 
       {mostrarFormulario && (
-        <FormularioEvento
-          onCancelar={() => setMostrarFormulario(false)}
-          onConcluido={() => {
-            setMostrarFormulario(false)
-            carregarEventos()
-          }}
-        />
+        <div className="modal-fundo">
+          <div className="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="titulo-criar-evento">
+            <div className="modal-cabecalho">
+              <h2 id="titulo-criar-evento" className="modal-titulo">
+                Criar evento
+              </h2>
+              <button
+                type="button"
+                className="modal-fechar"
+                onClick={() => setMostrarFormulario(false)}
+                aria-label="Fechar"
+              >
+                ×
+              </button>
+            </div>
+            <FormularioEvento
+              onCancelar={() => setMostrarFormulario(false)}
+              onConcluido={() => {
+                setMostrarFormulario(false)
+                carregarEventos()
+              }}
+            />
+          </div>
+        </div>
       )}
 
       <div className="painel__cartoes">

@@ -29,7 +29,9 @@ function preencherCamposValidos(inicio: Date, termino: Date) {
 
 describe('FormularioEvento', () => {
   it('recusa data de inicio no passado antes de enviar', async () => {
-    const fetchMock = vi.fn()
+    // resposta generica: o preenchimento do CEP dispara uma busca no ViaCEP por conta
+    // propria, sem relacao com o que este teste verifica
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
 
     render(<FormularioEvento onCancelar={vi.fn()} onConcluido={vi.fn()} />)
@@ -41,7 +43,8 @@ describe('FormularioEvento', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
 
     expect(await screen.findByText('Data de inicio nao pode ser anterior ao momento atual')).toBeInTheDocument()
-    expect(fetchMock).not.toHaveBeenCalled()
+    const chamouEventos = fetchMock.mock.calls.some(([url]) => String(url).includes('/api/v1/eventos'))
+    expect(chamouEventos).toBe(false)
   })
 
   it('mostra no campo correto a mensagem de erro vinda do array errors da API', async () => {

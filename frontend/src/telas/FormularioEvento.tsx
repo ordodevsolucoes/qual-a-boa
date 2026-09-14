@@ -124,14 +124,31 @@ function formatarPreco(preco: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(preco)
 }
 
+// limite inferior do "inicio" no seletor: computado uma vez, na abertura do formulario,
+// para o calendario nativo nao deixar escolher (nem digitar) uma data ja passada
+function paraDatetimeLocal(data: Date): string {
+  const preencher = (numero: number) => String(numero).padStart(2, '0')
+  return `${data.getFullYear()}-${preencher(data.getMonth() + 1)}-${preencher(data.getDate())}T${preencher(data.getHours())}:${preencher(data.getMinutes())}`
+}
+
+interface EnderecoViaCep {
+  logradouro?: string
+  bairro?: string
+  localidade?: string
+  uf?: string
+  erro?: boolean
+}
+
 interface PropsFormularioEvento {
   onCancelar: () => void
   onConcluido: () => void
 }
 
 export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEvento) {
+  const [agora] = useState(() => paraDatetimeLocal(new Date()))
   const [campos, setCampos] = useState<CamposEvento>(CAMPOS_VAZIOS)
   const [errosDeCampo, setErrosDeCampo] = useState<Partial<Record<keyof CamposEvento, string>>>({})
+  const [buscandoCep, setBuscandoCep] = useState(false)
 
   const [novoLote, setNovoLote] = useState<CamposLote>(LOTE_VAZIO)
   const [errosNovoLote, setErrosNovoLote] = useState<Partial<Record<keyof CamposLote, string>>>({})
@@ -151,6 +168,48 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
   function aoMudarNovoLote(nome: keyof CamposLote) {
     return (evento: ChangeEvent<HTMLInputElement>) => {
       setNovoLote((atual) => ({ ...atual, [nome]: evento.target.value }))
+    }
+  }
+
+  // consulta o ViaCEP assim que o CEP tem 8 digitos e preenche o resto do endereco;
+  // erro de rede ou CEP inexistente vira mensagem no proprio campo, sem travar o resto
+  // do formulario, ja que o preenchimento manual continua sendo uma saida valida
+  async function buscarCep(cepDigitado: string) {
+    const cepLimpo = cepDigitado.replace(/\D/g, '')
+    if (cepLimpo.length !== 8) {
+      return
+    }
+    setBuscandoCep(true)
+    try {
+      const resposta = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+      if (!resposta.ok) {
+        throw new Error('falha na consulta de CEP')
+      }
+      const dados = (await resposta.json()) as EnderecoViaCep
+      if (dados.erro) {
+        setErrosDeCampo((atual) => ({ ...atual, cep: 'CEP nao encontrado' }))
+        return
+      }
+      setErrosDeCampo((atual) => ({ ...atual, cep: undefined }))
+      setCampos((atual) => ({
+        ...atual,
+        logradouro: dados.logradouro || atual.logradouro,
+        bairro: dados.bairro || atual.bairro,
+        cidade: dados.localidade || atual.cidade,
+        uf: dados.uf || atual.uf,
+      }))
+    } catch {
+      setErrosDeCampo((atual) => ({ ...atual, cep: 'Nao foi possivel consultar o CEP, preencha o endereco manualmente' }))
+    } finally {
+      setBuscandoCep(false)
+    }
+  }
+
+  function aoMudarCep(evento: ChangeEvent<HTMLInputElement>) {
+    const valor = evento.target.value
+    setCampos((atual) => ({ ...atual, cep: valor }))
+    if (valor.replace(/\D/g, '').length === 8) {
+      buscarCep(valor)
     }
   }
 
@@ -354,6 +413,7 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
         <Campo
           label="Inicio"
           type="datetime-local"
+          min={agora}
           value={campos.inicio}
           onChange={aoMudarCampo('inicio')}
           erro={errosDeCampo.inicio}
@@ -361,6 +421,7 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
         <Campo
           label="Termino"
           type="datetime-local"
+          min={campos.inicio || agora}
           value={campos.termino}
           onChange={aoMudarCampo('termino')}
           erro={errosDeCampo.termino}
@@ -370,7 +431,10 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
         <Campo label="Bairro" value={campos.bairro} onChange={aoMudarCampo('bairro')} erro={errosDeCampo.bairro} />
         <Campo label="Cidade" value={campos.cidade} onChange={aoMudarCampo('cidade')} erro={errosDeCampo.cidade} />
         <Campo label="UF" value={campos.uf} onChange={aoMudarCampo('uf')} erro={errosDeCampo.uf} maxLength={2} />
-        <Campo label="CEP" value={campos.cep} onChange={aoMudarCampo('cep')} erro={errosDeCampo.cep} maxLength={8} />
+        <div className="formulario__campo-cep">
+          <Campo label="CEP" value={campos.cep} onChange={aoMudarCep} erro={errosDeCampo.cep} maxLength={8} />
+          {buscandoCep && <p className="formulario__cep-status">Buscando endereco...</p>}
+        </div>
       </div>
 
       <section className="formulario__lotes">
@@ -422,6 +486,7 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
           <Campo
             label="Vigencia inicio"
             type="datetime-local"
+            max={campos.inicio || undefined}
             value={novoLote.vigenciaInicio}
             onChange={aoMudarNovoLote('vigenciaInicio')}
             erro={errosNovoLote.vigenciaInicio}
@@ -429,6 +494,8 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
           <Campo
             label="Vigencia fim"
             type="datetime-local"
+            min={novoLote.vigenciaInicio || undefined}
+            max={campos.inicio || undefined}
             value={novoLote.vigenciaFim}
             onChange={aoMudarNovoLote('vigenciaFim')}
             erro={errosNovoLote.vigenciaFim}
