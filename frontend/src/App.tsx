@@ -1,19 +1,21 @@
-import { useEffect, useState } from 'react'
-import { verificarSaudeDaApi } from './api/cliente'
-
-type EstadoConexao = 'verificando' | 'online' | 'offline'
+import { Route, Routes } from 'react-router-dom'
+import { RotaProtegida } from './auth/RotaProtegida'
+import { Login } from './telas/Login'
+import { Painel } from './telas/Painel'
 
 function App() {
-  const [estado, setEstado] = useState<EstadoConexao>('verificando')
-
-  useEffect(() => {
-    verificarSaudeDaApi().then((ok) => setEstado(ok ? 'online' : 'offline'))
-  }, [])
-
   return (
-    <p>
-      API: {estado}
-    </p>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <RotaProtegida>
+            <Painel />
+          </RotaProtegida>
+        }
+      />
+    </Routes>
   )
 }
 

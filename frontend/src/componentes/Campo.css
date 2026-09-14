@@ -1,0 +1,73 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.campo__rotulo {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--texto-3);
+  font-family: var(--fonte-titulo);
+}
+
+.campo__entrada {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  color: var(--texto);
+  font-family: var(--fonte-corpo);
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
+.campo__entrada:focus {
+  outline: none;
+  border-color: var(--acento);
+}
+
+.campo__entrada--textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--fonte-corpo);
+}
+
+.campo__erro {
+  color: var(--erro);
+  font-size: 12px;
+}
+
+.campo__envoltorio-senha {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.campo__entrada--com-botao {
+  padding-right: 68px;
+}
+
+.campo__alternar-senha {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--texto-3);
+  font-family: var(--fonte-titulo);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.campo__alternar-senha:hover {
+  color: var(--texto);
+}

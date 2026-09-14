@@ -1,0 +1,28 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: var(--raio);
+  font-family: var(--fonte-corpo);
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.botao:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.botao--primario {
+  background: var(--acento);
+  color: var(--acento-contraste);
+  font-weight: 700;
+}
+
+.botao--secundario {
+  background: transparent;
+  border-color: var(--linha);
+  color: var(--texto);
+}
