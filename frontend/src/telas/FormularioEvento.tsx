@@ -426,15 +426,15 @@ export function FormularioEvento({ onCancelar, onConcluido }: PropsFormularioEve
           onChange={aoMudarCampo('termino')}
           erro={errosDeCampo.termino}
         />
+        <div className="formulario__campo-cep">
+          <Campo label="CEP" value={campos.cep} onChange={aoMudarCep} erro={errosDeCampo.cep} maxLength={8} />
+          {buscandoCep && <p className="formulario__cep-status">Buscando endereco...</p>}
+        </div>
         <Campo label="Logradouro" value={campos.logradouro} onChange={aoMudarCampo('logradouro')} erro={errosDeCampo.logradouro} />
         <Campo label="Numero" value={campos.numero} onChange={aoMudarCampo('numero')} erro={errosDeCampo.numero} />
         <Campo label="Bairro" value={campos.bairro} onChange={aoMudarCampo('bairro')} erro={errosDeCampo.bairro} />
         <Campo label="Cidade" value={campos.cidade} onChange={aoMudarCampo('cidade')} erro={errosDeCampo.cidade} />
         <Campo label="UF" value={campos.uf} onChange={aoMudarCampo('uf')} erro={errosDeCampo.uf} maxLength={2} />
-        <div className="formulario__campo-cep">
-          <Campo label="CEP" value={campos.cep} onChange={aoMudarCep} erro={errosDeCampo.cep} maxLength={8} />
-          {buscandoCep && <p className="formulario__cep-status">Buscando endereco...</p>}
-        </div>
       </div>
 
       <section className="formulario__lotes">
